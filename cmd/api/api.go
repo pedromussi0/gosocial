@@ -7,11 +7,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/pedromussi0/gosocial.git/internal/store"
 )
 
 type application struct {
 	config config
-	router *chi.Mux
+	store  store.Storage
+	r      *chi.Mux
 }
 
 type config struct {
@@ -19,23 +21,30 @@ type config struct {
 }
 
 func (app *application) mount() http.Handler {
-	router := chi.NewRouter()
+	r := chi.NewRouter()
 
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-	router.Route("/v1", func(r chi.Router) {
+	// Set a timeout value on the request context (ctx), that will signal
+	// through ctx.Done() that the request has timed out and further
+	// processing should be stopped.
+	r.Use(middleware.Timeout(60 * time.Second))
+
+	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthcheckHandler)
 	})
 
-	app.router = router
-	return router
+	app.r = r
+	return r
 }
 
 func (app *application) run() error {
 	srv := &http.Server{
 		Addr:         app.config.addr,
-		Handler:      app.router,
+		Handler:      app.r,
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  30 * time.Second,
 		IdleTimeout:  time.Minute,
