@@ -12,7 +12,7 @@ import (
 
 type application struct {
 	config config
-	store  *store.Storage
+	store  store.Storage
 	r      *chi.Mux
 }
 
