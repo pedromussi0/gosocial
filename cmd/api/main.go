@@ -10,6 +10,8 @@ import (
 	"github.com/pedromussi0/gosocial.git/internal/store"
 )
 
+const version = "0.0.1"
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -24,6 +26,7 @@ func main() {
 			maxIdleConns: 30,
 			maxIdleTime:  "15m",
 		},
+		env: os.Getenv("ENV"),
 	}
 
 	db, err := db.New(
