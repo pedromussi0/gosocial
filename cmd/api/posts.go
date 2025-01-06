@@ -1,8 +1,12 @@
 package main
 
 import (
-	"github.com/pedromussi0/gosocial.git/internal/store"
+	"errors"
 	"net/http"
+	"strconv"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/pedromussi0/gosocial.git/internal/store"
 )
 
 type CreatePostPayLoad struct {
@@ -23,7 +27,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Content: payload.Content,
 		Tags:    payload.Tags,
 		//TO DO: Change after auth
-		UserID: 1,
+		UserID: 3,
 	}
 
 	ctx := r.Context()
@@ -39,4 +43,36 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+}
+
+func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "postID")
+
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx := r.Context()
+
+	post, err := app.store.Posts.GetByID(ctx, id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			writeJSONError(w, http.StatusNotFound, err.Error())
+
+		default:
+			writeJSONError(w, http.StatusInternalServerError, err.Error())
+		}
+
+		return
+	}
+
+	if err := writeJSON(w, http.StatusOK, post); err != nil {
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 }
