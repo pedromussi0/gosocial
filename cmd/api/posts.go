@@ -32,7 +32,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Content: payload.Content,
 		Tags:    payload.Tags,
 		//TO DO: Change after auth
-		UserID: 3,
+		UserID: 1,
 	}
 
 	ctx := r.Context()
@@ -62,7 +62,6 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	post, err := app.store.Posts.GetByID(ctx, id)
-
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -71,9 +70,16 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			app.internalServerError(w, r, err)
 		}
-
 		return
 	}
+
+	comments, err := app.store.Comments.GetByPostID(ctx, id)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	post.Comment = comments
 
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
