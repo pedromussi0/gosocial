@@ -6,10 +6,10 @@ import (
 )
 
 type User struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	//	Password  password `json:"-"`
+	ID        int64  `json:"id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Password  string `json:"-"`
 	CreatedAt string `json:"created_at"`
 	IsActive  bool   `json:"is_active"`
 	//RoleID    int64    `json:"role_id"`
@@ -28,7 +28,7 @@ type UserStore struct {
 func (s *UserStore) Create(ctx context.Context, user *User) error {
 	query := `
 	INSERT INTO users (username, password, email)
-	VALUES ($1, $2, $3, $4) RETURNING id, created_at
+	VALUES ($1, $2, $3) RETURNING id, created_at
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -38,7 +38,7 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 		ctx,
 		query,
 		user.Username,
-		//user.Password,
+		user.Password,
 		user.Email,
 	).Scan(
 		&user.ID,
