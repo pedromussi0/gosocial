@@ -26,8 +26,9 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 
 	comment := &store.Comment{
 		PostID:  post.ID,
-		UserID:  1,
+		UserID:  103,
 		Content: payload.Content,
+		User:    store.User{ID: 103, Username: "Alice0"},
 	}
 
 	ctx := r.Context()
