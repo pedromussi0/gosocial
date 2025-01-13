@@ -25,6 +25,17 @@ type postKey string
 
 const postCtx postKey = "post"
 
+// createPostHandler godoc
+//	@Summary		Create a new post
+//	@Description	Create a new post
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreatePostPayLoad	true	"Create Post Payload"
+//	@Success		201		{object}	store.Post
+//	@Failure		400		{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/posts [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayLoad
 	if err := readJSON(w, r, &payload); err != nil {
@@ -60,6 +71,18 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// getPostHandler godoc
+//	@Summary		Get post by ID
+//	@Description	Get post by ID
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int	true	"Post ID"
+//	@Success		200		{object}	store.Post
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/posts/{postID} [get]
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
@@ -78,6 +101,19 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// updatePostHandler godoc
+//	@Summary		Update a post
+//	@Description	Update a post
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int					true	"Post ID"
+//	@Param			payload	body		UpdatePostPayload	true	"Update Post Payload"
+//	@Success		200		{object}	store.Post
+//	@Failure		400		{object}	error
+//	@Failure		409		{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/posts/{postID} [put]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
@@ -117,6 +153,18 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// deletePostHandler godoc
+//	@Summary		Delete a post
+//	@Description	Delete a post
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path	int	true	"Post ID"
+//	@Success		204
+//	@Failure		400	{object}	error
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Router			/posts/{postID} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
 
