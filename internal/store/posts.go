@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 
 	"github.com/lib/pq"
 )
@@ -152,21 +153,20 @@ func (s *PostStore) Delete(ctx context.Context, postID int64) error {
 
 func (s *PostStore) GetUserFeed(ctx context.Context, userID int64, fq PaginatedFeedQuery) ([]PostWithMetadata, error) {
 	query := `
-	SELECT 
+	SELECT
 		p.id, p.user_id, p.title, p.content, p.created_at, p.tags, p.version,
 		u.username,
-		COUNT(c.id) as comment_count
+		COUNT(c.id) AS comment_count
 	FROM posts p
 	LEFT JOIN comments c ON c.post_id = p.id
-	left join users u on p.user_id = u.id
+	LEFT JOIN users u ON p.user_id = u.id
 	JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
-	WHERE
-     f.user_id = $1 AND 
-     (p.title ILIKE '%' || $4 || '%' OR p.content ILIKE '%' || $4 || '%') AND
-     (p.tags @> $5 OR $5 = '{}')
+	WHERE f.user_id = $1 
+		AND ($4::text IS NULL OR p.title ILIKE '%' || $4::text || '%' OR p.content ILIKE '%' || $4::text || '%')
+		AND ($5::varchar[] IS NULL OR $5 = '{}' OR p.tags @> $5::varchar[])
 	GROUP BY p.id, u.username
-	ORDER BY p.created_at ` + fq.Sort + `
-	LIMIT $2 OFFSET $3
+	ORDER BY p.created_at ASC
+	LIMIT $2 OFFSET $3;
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -174,6 +174,7 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userID int64, fq PaginatedF
 
 	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset, fq.Search, pq.Array(fq.Tags))
 	if err != nil {
+		log.Printf("ERR: Query: %s, userID: %d, Limit: %d, Offset: %d, Search: %s, Tags: %v", query, userID, fq.Limit, fq.Offset, fq.Search, fq.Tags)
 		return nil, err
 	}
 	defer rows.Close()
@@ -195,9 +196,9 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userID int64, fq PaginatedF
 		if err != nil {
 			return nil, err
 		}
-
 		feed = append(feed, post)
 	}
 
+	log.Printf("success: Query: %s, userID: %d, Limit: %d, Offset: %d, Search: %s, Tags: %v", query, userID, fq.Limit, fq.Offset, fq.Search, fq.Tags)
 	return feed, nil
 }
