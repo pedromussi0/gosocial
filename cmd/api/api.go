@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
 
 	"github.com/pedromussi0/gosocial.git/docs" // Required for embedded swagger docs
 	"github.com/pedromussi0/gosocial.git/internal/store"
@@ -18,6 +18,7 @@ type application struct {
 	config config
 	store  store.Storage
 	r      *chi.Mux
+	logger *zap.SugaredLogger
 }
 
 type config struct {
@@ -104,6 +105,6 @@ func (app *application) run() error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("Server has started on %s", app.config.addr)
+	app.logger.Infow("Server has started", "addr", app.config.addr)
 	return srv.ListenAndServe()
 }
