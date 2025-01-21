@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	// "github.com/go-chi/cors"
 	"go.uber.org/zap"
 
 	"github.com/pedromussi0/gosocial.git/docs" // Required for embedded swagger docs
@@ -90,9 +91,9 @@ func (app *application) mount() http.Handler {
 			})
 
 			//public
-			r.Route("/auth", func(r chi.Router) {
-				r.Post("/users", app.registerUserHandler)
-			})
+		})
+		r.Route("/authentication", func(r chi.Router) {
+			r.Post("/users", app.registerUserHandler)
 		})
 
 	})

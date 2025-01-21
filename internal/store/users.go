@@ -59,7 +59,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		ctx,
 		query,
 		user.Username,
-		user.Password,
+		user.Password.hash,
 		user.Email,
 	).Scan(
 		&user.ID,
@@ -127,7 +127,7 @@ func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token strin
 
 func (s *UserStore) createUserInvite(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, userID int64) error {
 	query := `
-	INSERT INTO user_invites (token, exp, user_id)
+	INSERT INTO user_invitations (token, expiry, user_id)
 	VALUES ($1, $2, $3)
 	`
 
